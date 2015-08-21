@@ -77,7 +77,7 @@ removeTrain.cols <- grepl("^X|timestamp|window", names(trainingData))
 trainingData <- trainingData[, !removeTrain.cols]
 # create a new data frame with numeric variables from the the trainingData data frame
 trainDataCleaned <- trainingData[, sapply(trainingData, is.numeric)]
-# assign the classe column variables from the original trainingData data frame to the new  # cleaned training data
+# assign the classe column variables from the original trainingData data frame to the new cleaned training data
 trainDataCleaned$classe <- classe
 
 # search through the column names in the data for those that match the search criteria
@@ -109,7 +109,7 @@ testData <- trainDataCleaned[-inTrain,]
 
 # Predictive Modelling
 
-In order to conduct to predictive modelling, I selected the RandomForest algorithm because of its efficiency in selecting the important variables and is robust to correlated covariate and outliers. I have opted to use 5-fold cross validation when applying the algorithm.
+In order to conduct to predictive modelling, I selected the RandomForest algorithm because of its efficiency in selecting the important variables and is robust to correlated covariate and outliers. I have opted to use 10-fold cross validation when applying the algorithm.
 
 ```{r}
 modelControl <- trainControl(method = "cv", 10)
@@ -149,16 +149,43 @@ predResult
 
 # Appendix
 
+```{r, echo=FALSE}
+if (!file.exists("./figures")) {
+  dir.create("./figures")
+}
+if (!file.exists("./prediction_results")){ 
+  dir.create("./prediction_results")  
+}
+```
 - fancyRpartPlot
 
 ```{r}
 cartModel <- train(classe ~ ., data=trainData, method="rpart")
 cartModel$finalModel
 fancyRpartPlot(cartModel$finalModel)
+dev.copy(png, file = "./figures/plot1.png")
+dev.off()
 ```
 
 - prp plot for tree visualization
 ```{r}
 treeModel <- rpart(classe ~. , data = trainData, method = "class")
 prp(treeModel)
+dev.copy(png, file="./figures/plot2.png")
+dev.off()
+```
+
+- Submission script
+
+```{r}
+answers <- predResult
+pml_write_files <- function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("./prediction_results/problem_id_",i,".txt")
+    write.table(x[i], file=filename, quote=FALSE,
+                row.names=FALSE, col.names=FALSE)
+  }
+}
+pml_write_files(answers)
 ```
